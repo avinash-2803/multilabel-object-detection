@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results — Remote Sensing Detector</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    header {
+      max-width: 1200px;
+      margin: 0 auto 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo-sm {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .header-title { font-size: 18px; font-weight: 700; color: #f1f5f9; }
+    .header-file  { font-size: 12px; color: #64748b; }
+
+    .btn-back {
+      padding: 8px 16px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-back:hover { background: #334155; color: #e2e8f0; }
+
+    .layout {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Left column ── */
+    .image-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .image-card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid #334155;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .section-title {
+      font-size: 13px; font-weight: 600; color: #94a3b8;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .stat-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px; font-weight: 500;
+    }
+    .stat-badge.blue   { background: #1e3a5f; color: #60a5fa; }
+    .stat-badge.purple { background: #2e1065; color: #c084fc; }
+
+    .annotated-img {
+      width: 100%;
+      display: block;
+      object-fit: contain;
+      background: #0f172a;
+    }
+
+    /* ── Right column ── */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    .info-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .info-card-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid #334155;
+      font-size: 12px; font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .info-card-body { padding: 14px 16px; }
+
+    /* Scene labels */
+    .scene-labels { display: flex; flex-wrap: wrap; gap: 8px; }
+    .scene-pill {
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px; font-weight: 500;
+      background: #1e3a5f; color: #93c5fd;
+      border: 1px solid #1d4ed8;
+    }
+    .scene-pill.top {
+      background: #312e81; color: #a5b4fc;
+      border-color: #4338ca;
+      font-size: 13px; padding: 6px 14px;
+    }
+
+    /* Objects table */
+    .obj-table { width: 100%; border-collapse: collapse; }
+    .obj-table th {
+      font-size: 11px; font-weight: 600; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 6px 8px; text-align: left;
+      border-bottom: 1px solid #334155;
+    }
+    .obj-table td {
+      padding: 9px 8px;
+      font-size: 13px;
+      border-bottom: 1px solid #1e293b;
+      vertical-align: middle;
+    }
+    .obj-table tr:last-child td { border-bottom: none; }
+    .obj-table tr:hover td { background: #0f172a; }
+
+    .class-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+      flex-shrink: 0;
+    }
+    .class-name { display: flex; align-items: center; }
+
+    .count-badge {
+      display: inline-block;
+      background: #1e3a5f; color: #60a5fa;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 12px; font-weight: 600;
+    }
+    .px-count { color: #64748b; font-size: 12px; }
+
+    .no-objects {
+      text-align: center;
+      padding: 24px 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .stat-box {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-num  { font-size: 22px; font-weight: 700; color: #f1f5f9; }
+    .stat-lbl  { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    /* JSON block */
+    .json-wrap {
+      background: #0f172a;
+      border-radius: 0 0 14px 14px;
+      overflow: hidden;
+    }
+    .json-toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .json-label { font-size: 11px; color: #64748b; font-weight: 600; }
+    .copy-btn {
+      padding: 4px 10px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .copy-btn:hover { background: #334155; color: #e2e8f0; }
+    pre.json-code {
+      padding: 14px;
+      font-size: 11px;
+      font-family: "Fira Code", "Cascadia Code", monospace;
+      color: #94a3b8;
+      overflow-x: auto;
+      max-height: 340px;
+      white-space: pre;
+      line-height: 1.6;
+    }
+    .json-key    { color: #60a5fa; }
+    .json-str    { color: #34d399; }
+    .json-num    { color: #f97316; }
+    .json-bool   { color: #a78bfa; }
+
+    /* class colour map — matches object_detector.py */
+    .col-plane              { background: #E74C3C; }
+    .col-ship               { background: #3498DB; }
+    .col-storage-tank       { background: #2ECC71; }
+    .col-baseball-diamond   { background: #F39C12; }
+    .col-tennis-court       { background: #9B59B6; }
+    .col-basketball-court   { background: #1ABC9C; }
+    .col-ground-track-field { background: #E67E22; }
+    .col-harbor             { background: #34495E; }
+    .col-bridge             { background: #E91E63; }
+    .col-large-vehicle      { background: #00BCD4; }
+    .col-small-vehicle      { background: #FF5722; }
+    .col-helicopter         { background: #8BC34A; }
+    .col-roundabout         { background: #FF9800; }
+    .col-soccer-ball-field  { background: #795548; }
+    .col-swimming-pool      { background: #607D8B; }
+    .col-default            { background: #64748b; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-sm">🛰️</div>
+    <div>
+      <div class="header-title">Analysis Results</div>
+      <div class="header-file">{{ original_name }}</div>
+    </div>
+  </div>
+  <a href="{% url 'index' %}" class="btn-back">← New Image</a>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT — annotated image -->
+  <div class="image-card">
+    <div class="image-card-header">
+      <span class="section-title">Detected Objects</span>
+      <div style="display:flex;gap:8px;">
+        <span class="stat-badge blue">{{ total_objects }} object{{ total_objects|pluralize }}</span>
+        <span class="stat-badge purple">{{ unique_classes }} class{{ unique_classes|pluralize:"es" }}</span>
+      </div>
+    </div>
+    <img class="annotated-img" src="{{ annotated_url }}" alt="Annotated detection result">
+  </div>
+
+  <!-- RIGHT column -->
+  <div class="right-col">
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-num">{{ scene_labels|length }}</div>
+        <div class="stat-lbl">Scene Labels</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">{{ unique_classes }}</div>
+        <div class="stat-lbl">Object Classes</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num">{{ total_objects }}</div>
+        <div class="stat-lbl">Total Objects</div>
+      </div>
+    </div>
+
+    <!-- Scene labels -->
+    <div class="info-card">
+      <div class="info-card-header">🏙 Scene Classification (DenseNet169 + GCN)</div>
+      <div class="info-card-body">
+        {% if scene_labels %}
+        <div class="scene-labels">
+          {% for lbl in scene_labels %}
+            {% if forloop.first %}
+            <span class="scene-pill top">{{ lbl }}</span>
+            {% else %}
+            <span class="scene-pill">{{ lbl }}</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-objects">No scene labels predicted.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Detected objects table -->
+    <div class="info-card">
+      <div class="info-card-header">📦 Detected Objects (YOLOv8 + SAHI)</div>
+      <div class="info-card-body" style="padding:0;">
+        {% if objects %}
+        <table class="obj-table">
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Count</th>
+              <th>Pixel Area</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for obj in objects %}
+            <tr>
+              <td>
+                <div class="class-name">
+                  <span class="class-dot" style="background:{{ obj.color|default:'#64748b' }};"></span>
+                  {{ obj.label }}
+                </div>
+              </td>
+              <td><span class="count-badge">{{ obj.count }}</span></td>
+              <td><span class="px-count">{{ obj.pixel_count }} px</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="no-objects">No objects detected in this image.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- JSON output -->
+    <div class="info-card">
+      <div class="info-card-header">{ } JSON Output</div>
+      <div class="json-wrap">
+        <div class="json-toolbar">
+          <span class="json-label">Full structured result</span>
+          <button class="copy-btn" id="copyBtn">Copy JSON</button>
+        </div>
+        <pre class="json-code" id="jsonCode">{{ result_json }}</pre>
+      </div>
+    </div>
+
+  </div><!-- /right-col -->
+</div><!-- /layout -->
+
+<script>
+document.getElementById('copyBtn').addEventListener('click', function () {
+  const text = document.getElementById('jsonCode').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    this.textContent = 'Copied!';
+    setTimeout(() => { this.textContent = 'Copy JSON'; }, 2000);
+  });
+});
+</script>
+</body>
+</html>

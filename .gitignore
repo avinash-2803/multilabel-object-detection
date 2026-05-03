@@ -1,0 +1,17 @@
+venv/
+media/
+staticfiles/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+db.sqlite3
+.DS_Store
+Thumbs.db
+model_assets/*.pth
+model_assets/*.pt
+model_assets/*.pkl
+model_assets/*.npy
+*.dll
+*.pyd
+*.so

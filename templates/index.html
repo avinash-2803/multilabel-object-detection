@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Remote Sensing Detector</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #e2e8f0;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 560px;
+      text-align: center;
+    }
+
+    .logo {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 28px;
+    }
+
+    h1 {
+      font-size: 22px; font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px; color: #94a3b8;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .pills {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .pill {
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px; font-weight: 500;
+    }
+    .pill.blue   { background: #1e3a5f; color: #60a5fa; border: 1px solid #1d4ed8; }
+    .pill.purple { background: #2e1065; color: #c084fc; border: 1px solid #7c3aed; }
+    .pill.green  { background: #064e3b; color: #34d399; border: 1px solid #059669; }
+
+    .drop-zone {
+      border: 2px dashed #334155;
+      border-radius: 12px;
+      padding: 40px 20px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: #3b82f6;
+      background: #1a2942;
+    }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-icon { font-size: 36px; margin-bottom: 12px; }
+    .drop-text { font-size: 14px; color: #94a3b8; }
+    .drop-text strong { color: #60a5fa; }
+    .drop-hint { font-size: 12px; color: #64748b; margin-top: 6px; }
+
+    .preview-wrap {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 20px;
+    }
+    .preview-wrap img {
+      width: 52px; height: 52px;
+      border-radius: 6px; object-fit: cover;
+    }
+    .preview-info { text-align: left; flex: 1; }
+    .preview-name { font-size: 13px; font-weight: 500; color: #e2e8f0; }
+    .preview-size { font-size: 12px; color: #64748b; }
+    .preview-remove {
+      cursor: pointer; color: #64748b; font-size: 18px;
+      background: none; border: none; padding: 4px;
+    }
+    .preview-remove:hover { color: #f87171; }
+
+    .btn-analyse {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-analyse:hover   { opacity: 0.92; }
+    .btn-analyse:active  { transform: scale(0.99); }
+    .btn-analyse:disabled { opacity: 0.4; cursor: default; }
+
+    .loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 0;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #334155;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: 13px; color: #94a3b8; }
+
+    .error-box {
+      background: #450a0a;
+      border: 1px solid #b91c1c;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #fca5a5;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .models-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin-top: 28px;
+    }
+    .model-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 14px;
+      text-align: left;
+    }
+    .model-card .label { font-size: 11px; color: #64748b; margin-bottom: 4px; }
+    .model-card .name  { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+    .model-card .desc  { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">🛰️</div>
+  <h1>Remote Sensing Detector</h1>
+  <p class="subtitle">
+    Upload a satellite or aerial image to get scene classification
+    and object detection with bounding boxes.
+  </p>
+
+  <div class="pills">
+    <span class="pill blue">DenseNet169 + GCN</span>
+    <span class="pill purple">YOLOv8 + SAHI</span>
+    <span class="pill green">MLRSNet · DOTA</span>
+  </div>
+
+  {% if error %}
+  <div class="error-box">⚠ {{ error }}</div>
+  {% endif %}
+
+  <form id="uploadForm" method="post" enctype="multipart/form-data" action="{% url 'analyse' %}">
+    {% csrf_token %}
+
+    <div class="drop-zone" id="dropZone">
+      <input type="file" name="image" id="fileInput" accept="image/*">
+      <div class="drop-icon">🖼️</div>
+      <div class="drop-text"><strong>Click to upload</strong> or drag &amp; drop</div>
+      <div class="drop-hint">JPG, PNG, TIFF — max 50 MB</div>
+    </div>
+
+    <div class="preview-wrap" id="previewWrap">
+      <img id="previewImg" src="" alt="preview">
+      <div class="preview-info">
+        <div class="preview-name" id="previewName"></div>
+        <div class="preview-size" id="previewSize"></div>
+      </div>
+      <button type="button" class="preview-remove" id="removeBtn">✕</button>
+    </div>
+
+    <button class="btn-analyse" id="submitBtn" type="submit" disabled>
+      Analyse Image
+    </button>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loadingText">Running models…</div>
+    </div>
+  </form>
+
+  <div class="models-row">
+    <div class="model-card">
+      <div class="label">SCENE MODEL</div>
+      <div class="name">MLCGCN DenseNet169</div>
+      <div class="desc">Multi-label scene classification trained on MLRSNet</div>
+    </div>
+    <div class="model-card">
+      <div class="label">DETECTION MODEL</div>
+      <div class="name">YOLOv8 + SAHI</div>
+      <div class="desc">15-class object detection trained on DOTA dataset</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const fileInput  = document.getElementById('fileInput');
+const dropZone   = document.getElementById('dropZone');
+const previewWrap = document.getElementById('previewWrap');
+const previewImg  = document.getElementById('previewImg');
+const previewName = document.getElementById('previewName');
+const previewSize = document.getElementById('previewSize');
+const removeBtn   = document.getElementById('removeBtn');
+const submitBtn   = document.getElementById('submitBtn');
+const form        = document.getElementById('uploadForm');
+const loading     = document.getElementById('loading');
+const loadingText = document.getElementById('loadingText');
+
+function fmt(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+
+function showPreview(file) {
+  const reader = new FileReader();
+  reader.onload = e => { previewImg.src = e.target.result; };
+  reader.readAsDataURL(file);
+  previewName.textContent = file.name;
+  previewSize.textContent = fmt(file.size);
+  previewWrap.style.display = 'flex';
+  dropZone.style.display = 'none';
+  submitBtn.disabled = false;
+}
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) showPreview(fileInput.files[0]);
+});
+
+removeBtn.addEventListener('click', () => {
+  fileInput.value = '';
+  previewWrap.style.display = 'none';
+  dropZone.style.display = 'block';
+  submitBtn.disabled = true;
+});
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault(); dropZone.classList.add('drag-over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    showPreview(file);
+  }
+});
+
+const msgs = [
+  'Running scene classification…',
+  'Running object detection…',
+  'Drawing bounding boxes…',
+  'Building results…',
+];
+let msgIdx = 0;
+
+form.addEventListener('submit', () => {
+  submitBtn.style.display = 'none';
+  loading.style.display   = 'flex';
+  msgIdx = 0;
+  loadingText.textContent = msgs[0];
+  setInterval(() => {
+    msgIdx = (msgIdx + 1) % msgs.length;
+    loadingText.textContent = msgs[msgIdx];
+  }, 2500);
+});
+</script>
+</body>
+</html>
