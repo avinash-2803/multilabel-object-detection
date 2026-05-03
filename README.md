@@ -46,7 +46,7 @@ The system integrates two independently trained deep learning models into a unif
 
 | Component | Model | Dataset | Task |
 |---|---|---|---|
-| Scene Classifier | DenseNet169 + GCN |DOTA (15 classes) | Multi-label scene prediction |
+| Scene Classifier | DenseNet169 + GCN | MLRSNet (46 classes) | Multi-label scene prediction |
 | Object Detector | YOLOv8 + SAHI | DOTA (15 classes) | Bounding box detection + counting |
 
 **Both models run on a single uploaded image and produce a combined structured JSON output alongside a visually annotated result image.**
@@ -137,7 +137,25 @@ Existing multi-label classification systems typically treat labels as independen
 
 ## 4. Datasets
 
-###  DOTA — Object Detection Dataset
+### 4.1 MLRSNet — Scene Classification Dataset
+
+MLRSNet (Multi-Label Remote Sensing Network dataset) is a large-scale benchmark for multi-label classification in remote sensing imagery.
+
+| Property | Value |
+|---|---|
+| **Total images** | 109,161 |
+| **Scene categories** | 46 |
+| **Image resolution** | 256 × 256 pixels |
+| **GSD range** | 0.1 m to 10 m |
+| **Avg. labels per image** | 2–3 |
+| **Image source** | Google Earth (multi-scale) |
+| **Annotation type** | Multi-hot binary label vector |
+
+**Complete list of 46 categories:**
+
+`airplane` · `airport` · `bareland` · `baseball_diamond` · `basketball_court` · `beach` · `bridge` · `chaparral` · `cloud` · `commercial_area` · `dense_residential_area` · `desert` · `eroded_farmland` · `farmland` · `forest` · `freeway` · `golf_course` · `ground_track_field` · `harbor&port` · `industrial_area` · `intersection` · `island` · `lake` · `meadow` · `mobile_home_park` · `mountain` · `overpass` · `park` · `parking_lot` · `parkway` · `railway` · `railway_station` · `river` · `roundabout` · `shipping_yard` · `snowberg` · `sparse_residential_area` · `stadium` · `storage_tank` · `swimmimg_pool` · `tennis_court` · `terrace` · `transmission_tower` · `vegetable_greenhouse` · `wetland` · `wind_turbine`
+
+### 4.2 DOTA — Object Detection Dataset
 
 DOTA (Dataset for Object deTection in Aerial Images) is the largest and most widely cited benchmark for aerial object detection.
 
@@ -565,8 +583,10 @@ http://127.0.0.1:8000
 ---
 
 
+
 ## 15. Acknowledgements
 
+- **MLRSNet** dataset provided by Qi et al., ISPRS Journal of Photogrammetry and Remote Sensing, 2021. We thank the authors for making this large-scale benchmark publicly available.
 - **DOTA** dataset provided by Xia et al., CVPR 2018. We thank the DOTA team for the comprehensive aerial object detection benchmark.
 - **Ultralytics** for the YOLOv8 framework and pretrained weights.
 - **SAHI** (Sliced Aided Hyper Inference) by Akyon et al. for the small object detection framework.
