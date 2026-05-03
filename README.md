@@ -46,7 +46,7 @@ The system integrates two independently trained deep learning models into a unif
 
 | Component | Model | Dataset | Task |
 |---|---|---|---|
-| Scene Classifier | DenseNet169 + GCN | MLRSNet (46 classes) | Multi-label scene prediction |
+| Scene Classifier | DenseNet169 + GCN |DOTA (15 classes) | Multi-label scene prediction |
 | Object Detector | YOLOv8 + SAHI | DOTA (15 classes) | Bounding box detection + counting |
 
 **Both models run on a single uploaded image and produce a combined structured JSON output alongside a visually annotated result image.**
