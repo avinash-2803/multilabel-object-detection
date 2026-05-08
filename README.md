@@ -305,10 +305,6 @@ A custom per-class confidence filtering step removes contextually implausible de
 {
   "scene_labels": [
     "airport",
-    "airplane",
-    "harbor&port",
-    "storage_tank",
-    "roundabout"
   ],
   "objects": [
     {
